@@ -16,3 +16,5 @@
 API 返回 `auto_route`，标签 `comp.graphics`，用时 6241 毫秒。
 
 完整实测响应见 [demo-response.json](demo-response.json)。
+
+[实跑截图](demo-screenshot.png)记录了使用同一篇文章的另一次请求，可查看输入、四次工具调用、分流结果和理由。
