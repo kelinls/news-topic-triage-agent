@@ -2,6 +2,22 @@
 
 这个命令行原型将英文新闻、论坛帖和工单分到六个主题。DeepSeek 控制器加载文本分类 Skill，按需调用输入校验、TF-IDF 与 LinearSVC 分类、近邻检索和终止工具。输出状态为 `auto_route`（自动分流）、`human_review`（人工复核）或 `rejected`（拒绝输入）。
 
+## 源码结构
+
+| 目录或模块 | 职责 |
+| --- | --- |
+| [news_agent/cli.py](news_agent/cli.py) | 读取命令行文本或文件，调用 Agent 并输出 JSON |
+| [news_agent/runtime.py](news_agent/runtime.py) | 维护单次任务的消息和状态，循环调用模型与工具，记录轨迹并处理终止 |
+| [news_agent/deepseek.py](news_agent/deepseek.py) | 调用 DeepSeek Chat Completions，处理超时和有限重试 |
+| [news_agent/tools.py](news_agent/tools.py) | 注册工具、校验参数、执行分类与近邻检索，记录自动分流或人工复核决定 |
+| [news_agent/skill_registry.py](news_agent/skill_registry.py) · [skills/](skills/) | 发现 Skill，按名称加载正文和来源信息 |
+| [news_agent/classifier.py](news_agent/classifier.py) · [news_agent/artifacts.py](news_agent/artifacts.py) | 分类与检索共用计算、固定门控基线及模型加载 |
+| [experiments/](experiments/) · [tests/](tests/) | 模型训练、对照实验和离线测试 |
+
+`NewsTriageLLMAgent.run()` 是 Python 入口。CLI 传入文章后，运行层向 DeepSeek 提供工具定义。DeepSeek 返回工具调用，运行层执行并把结果追加到下一轮消息，直到工具提交结果、请求人工复核或达到步数上限。
+
+根目录保留原有运行命令。旧版模型文件通过 `agent_core.py` 的兼容导入加载。
+
 ## 安装与训练
 
 在仓库根目录使用 Python 3.12 执行：

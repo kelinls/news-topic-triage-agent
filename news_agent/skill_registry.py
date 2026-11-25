@@ -50,7 +50,7 @@ class SkillRegistry:
     """Load local, versioned skill documents exposed through a tool."""
 
     def __init__(self, root: Path | None = None) -> None:
-        self.root = (root or Path(__file__).resolve().parent / "skills").resolve()
+        self.root = (root or Path(__file__).resolve().parents[1] / "skills").resolve()
         self._skills = self._discover()
 
     def _discover(self) -> dict[str, Skill]:

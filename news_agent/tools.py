@@ -10,8 +10,8 @@ from typing import Any, Callable
 
 import numpy as np
 
-from agent_core import cosine_similarities, neighbor_distribution, softmax
-from skill_registry import Skill, SkillRegistry
+from .classifier import cosine_similarities, neighbor_distribution, softmax
+from .skill_registry import Skill, SkillRegistry
 
 
 class ToolArgumentError(ValueError):
