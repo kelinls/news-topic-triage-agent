@@ -1,68 +1,56 @@
 # 新闻主题智能分诊 Agent
 
-这个命令行原型将英文新闻、论坛帖和工单分到六个主题。DeepSeek 控制器加载文本分类 Skill，按需调用输入校验、TF-IDF 与 LinearSVC 分类、近邻检索和终止工具。输出状态为 `auto_route`（自动分流）、`human_review`（人工复核）或 `rejected`（拒绝输入）。
+基于 Spring Boot 与 Spring AI AgentX 的新闻分诊后端。提交英文文章后，Agent 加载分类 Skill，调用本地 TF-IDF 与 LinearSVC、近邻检索和分流工具，返回分类建议、人工复核或拒绝，以及可检查的工具轨迹。
 
 ## 源码结构
 
-| 目录或模块 | 职责 |
+| 模块 | 职责 |
 | --- | --- |
-| [news_agent/cli.py](news_agent/cli.py) | 读取命令行文本或文件，调用 Agent 并输出 JSON |
-| [news_agent/runtime.py](news_agent/runtime.py) | 维护单次任务的消息和状态，循环调用模型与工具，记录轨迹并处理终止 |
-| [news_agent/deepseek.py](news_agent/deepseek.py) | 调用 DeepSeek Chat Completions，处理超时和有限重试 |
-| [news_agent/tools.py](news_agent/tools.py) | 注册工具、校验参数、执行分类与近邻检索，记录自动分流或人工复核决定 |
-| [news_agent/skill_registry.py](news_agent/skill_registry.py) · [skills/](skills/) | 发现 Skill，按名称加载正文和来源信息 |
-| [news_agent/classifier.py](news_agent/classifier.py) · [news_agent/artifacts.py](news_agent/artifacts.py) | 分类与检索共用计算、固定门控基线及模型加载 |
-| [experiments/](experiments/) · [tests/](tests/) | 模型训练、对照实验和离线测试 |
+| [backend](backend/) | Java 21 / Spring Boot API，请求状态、模型配置、业务工具和针对性测试 |
+| [vendor/spring-ai-agentx](vendor/spring-ai-agentx/) | 原有 AgentX Core 的源代码依赖，包含 ReAct 执行引擎、DeepSeek 模型适配和 SkillsTool |
+| [ml](ml/) | Python 训练、回环推理服务和成对实验脚本 |
+| [skills](skills/) | 新闻主题判例、上游来源与许可证 |
+| [examples](examples/) | 独立演示文本和实际 API 执行记录 |
 
-`NewsTriageLLMAgent.run()` 是 Python 入口。CLI 传入文章后，运行层向 DeepSeek 提供工具定义。DeepSeek 返回工具调用，运行层执行并把结果追加到下一轮消息，直到工具提交结果、请求人工复核或达到步数上限。
+请求由 `TriageController` 转交 `TriageService`。每次请求构建独立的 `ReactAgent` 和工具状态，AgentX 执行模型与工具的循环。分类和检索工具通过回环 HTTP 请求访问 ML 服务。自动分流要求主题在两种证据中一致，并达到服务端阈值。模型建议复核或 Agent 流程异常时，API 返回 `human_review`。原型把结果交给调用方，人工复核状态表示需要编辑处理。
 
-根目录保留原有运行命令。旧版模型文件通过 `agent_core.py` 的兼容导入加载。
+## 本地运行
 
-## 安装与训练
-
-在仓库根目录使用 Python 3.12 执行：
+需要 JDK 21、Maven 3.9 和 Python 3.12。首次训练会下载 20 Newsgroups 六类语料。
 
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements.txt
-python train_agent.py
+python -m pip install -r ml/requirements.txt
+python -m ml.train
+python -m ml.service
 ```
 
-训练脚本通过 scikit-learn 获取 20 Newsgroups，并生成模型和检索索引。首次训练需要下载数据。输入接受 40 至 50,000 字符的英文文本。
-
-## 运行演示
-
-先在当前终端设置环境变量 `DEEPSEEK_API_KEY`。可选的模型和接口配置见 [`.env.example`](.env.example)。
+在另一终端设置 `DEEPSEEK_API_KEY` 环境变量，再构建并启动 API。可选配置见 [`.env.example`](.env.example)。两个服务默认只监听回环地址。
 
 ```bash
-python news_llm_agent.py --file examples/graphics.txt --trace
+mvn -B -ntp clean package
+java -jar backend/target/news-triage-backend-1.0.0.jar
 ```
-
-输出包括候选主题、理由、已加载的 Skill 和工具调用记录。[真实运行记录](examples/demo.md)展示输入、关键观察及最终结果。演示需要联网调用 DeepSeek，输入以及检索工具的观察结果会发送给所配置的模型服务。
-
-固定门控基线使用相同的本地模型，运行时无需 API：
 
 ```bash
-python news_triage_agent.py --file examples/graphics.txt
+curl -fsS http://127.0.0.1:8088/api/health
+python -m ml.demo
 ```
 
-## 测试与评估
+API 接收 40 至 50,000 字符的英文正文。文章会发送给配置的模型供应商，检索工具只返回主题分布。请求和响应示例见 [演示记录](examples/demo.md)。
 
-完成训练后执行以下离线测试：
+## 实验复现
 
 ```bash
-python test_agent.py
-python test_llm_agent.py
-python test_experiment.py
+mvn -B -ntp test
+python -m ml.evaluate --workers 3
 ```
 
-设置 API 密钥后，运行 `python evaluate_llm_agent.py --run all` 复现完整 Agent、关闭 Skill 的消融和重复一致性检查。脚本根据固定种子生成 24 个测试任务，结果写入 `llm_agent_results/`。基线指标由训练脚本写入 `agent_results/agent_metrics.json`。
+评估使用相同的 24 篇样本对比固定基线、AgentX 和关闭 Skill 的 AgentX，另选 12 篇做重复检查。训练指标和逐例实验记录生成于 `ml/results/`。[汇总实验数据](examples/evaluation.json)保存报告中的指标。官方测试集的 LinearSVC 准确率为 83.99%，宏 F1 为 83.68%。端到端样本用于观察分流和异常处理，样本量及构造方式适合复现实验对照。
 
-LinearSVC 在 2,261 篇官方测试文本上的准确率为 83.99%，宏 F1 为 83.68%。在另一次 24 个端到端任务的评估中，完整 Agent 正确自动分流 13 个任务，转人工 8 个，拒绝 3 个。该评估包含边界和挑战样本，用于观察路由行为。端到端结果会受模型版本和服务状态影响。
+## 来源和许可
 
-## 组件与来源
-
-- **机器学习**使用 scikit-learn 的 TF-IDF、LinearSVC 和近邻检索。数据为 20 Newsgroups 六类官方训练集与测试集。原始帖子、包含语料的模型和逐例实验轨迹在本地生成。
-- **控制器**使用 DeepSeek 兼容 Chat Completions 接口，默认模型为 `deepseek-flash`。
-- **文本分类 Skill**改编自 Auto-Empirical-Research-Skills，版本、来源和改动见 [复用说明](skills/text-classification/NOTICE.md)，采用 [CC BY-SA 4.0](skills/text-classification/LICENSE)。
+- AgentX Core 源码快照和 Apache-2.0 许可证见 [上游声明](vendor/spring-ai-agentx/UPSTREAM.md)。
+- 文本分类 Skill 改编信息和 CC BY-SA 4.0 许可证见 [NOTICE](skills/text-classification/NOTICE.md)。
+- scikit-learn 提供 20 Newsgroups 下载接口。含语料的模型文件和逐例运行记录由本地脚本生成。

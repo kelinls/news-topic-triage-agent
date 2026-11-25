@@ -10,3 +10,6 @@ __pycache__/
 /llm_agent_results/
 /results/
 *.log
+/ml/artifacts/
+/ml/results/
+target/

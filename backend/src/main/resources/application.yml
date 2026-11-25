@@ -1,0 +1,18 @@
+server:
+  address: 127.0.0.1
+  port: ${TRIAGE_PORT:8088}
+spring:
+  ai:
+    model:
+      chat: none
+      embedding: none
+      image: none
+      moderation: none
+      audio:
+        speech: none
+        transcription: none
+triage:
+  ml-url: ${TRIAGE_ML_URL:http://127.0.0.1:8091}
+  model: ${DEEPSEEK_MODEL:deepseek-flash}
+  model-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
+  api-key: ${DEEPSEEK_API_KEY:}

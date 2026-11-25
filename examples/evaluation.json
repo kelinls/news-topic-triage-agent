@@ -1,0 +1,188 @@
+{
+  "date": "2026-11-25",
+  "seed": 20261122,
+  "model": "deepseek-flash",
+  "runtime": "Spring AI AgentX 1.0.1-M1",
+  "baseline": {
+    "total": 24,
+    "auto": 19,
+    "correct": 14,
+    "review": 2,
+    "rejected": 3,
+    "fallback": 0,
+    "skill_loaded": 0,
+    "tool_errors": 0,
+    "mean_ms": null,
+    "errors": [
+      {
+        "id": "rep-1-1",
+        "label": "alt.atheism",
+        "predicted": "comp.graphics"
+      },
+      {
+        "id": "rep-5-1",
+        "label": "sci.med",
+        "predicted": "rec.autos"
+      },
+      {
+        "id": "hard-1",
+        "label": "rec.autos",
+        "predicted": "talk.politics.guns"
+      },
+      {
+        "id": "hard-2",
+        "label": "alt.atheism",
+        "predicted": "talk.politics.guns"
+      },
+      {
+        "id": "hard-3",
+        "label": "comp.graphics",
+        "predicted": "rec.sport.baseball"
+      }
+    ],
+    "challenge_routes": [
+      "auto_route",
+      "auto_route",
+      "auto_route"
+    ],
+    "invalid_rejected": 3
+  },
+  "full": {
+    "total": 24,
+    "auto": 14,
+    "correct": 14,
+    "review": 7,
+    "rejected": 3,
+    "fallback": 0,
+    "skill_loaded": 21,
+    "tool_errors": 0,
+    "mean_ms": 6857.5,
+    "errors": [],
+    "challenge_routes": [
+      "human_review",
+      "human_review",
+      "human_review"
+    ],
+    "invalid_rejected": 3
+  },
+  "no_skill": {
+    "total": 24,
+    "auto": 14,
+    "correct": 14,
+    "review": 7,
+    "rejected": 3,
+    "fallback": 0,
+    "skill_loaded": 0,
+    "tool_errors": 0,
+    "mean_ms": 4899.3,
+    "errors": [],
+    "challenge_routes": [
+      "human_review",
+      "human_review",
+      "human_review"
+    ],
+    "invalid_rejected": 3
+  },
+  "repeat": {
+    "total": 12,
+    "auto": 9,
+    "correct": 9,
+    "review": 3,
+    "rejected": 0,
+    "fallback": 0,
+    "skill_loaded": 12,
+    "tool_errors": 2,
+    "mean_ms": 8470.2,
+    "errors": [],
+    "challenge_routes": [],
+    "invalid_rejected": 0,
+    "status_agreements": 10,
+    "label_agreements": 12,
+    "comparisons": [
+      {
+        "id": "rep-1-1",
+        "first_status": "human_review",
+        "second_status": "human_review",
+        "first_label": "comp.graphics",
+        "second_label": "comp.graphics"
+      },
+      {
+        "id": "rep-1-2",
+        "first_status": "human_review",
+        "second_status": "auto_route",
+        "first_label": "alt.atheism",
+        "second_label": "alt.atheism"
+      },
+      {
+        "id": "rep-2-1",
+        "first_status": "auto_route",
+        "second_status": "human_review",
+        "first_label": "comp.graphics",
+        "second_label": "comp.graphics"
+      },
+      {
+        "id": "rep-2-2",
+        "first_status": "auto_route",
+        "second_status": "auto_route",
+        "first_label": "comp.graphics",
+        "second_label": "comp.graphics"
+      },
+      {
+        "id": "rep-3-1",
+        "first_status": "auto_route",
+        "second_status": "auto_route",
+        "first_label": "rec.autos",
+        "second_label": "rec.autos"
+      },
+      {
+        "id": "rep-3-2",
+        "first_status": "auto_route",
+        "second_status": "auto_route",
+        "first_label": "rec.autos",
+        "second_label": "rec.autos"
+      },
+      {
+        "id": "rep-4-1",
+        "first_status": "auto_route",
+        "second_status": "auto_route",
+        "first_label": "rec.sport.baseball",
+        "second_label": "rec.sport.baseball"
+      },
+      {
+        "id": "rep-4-2",
+        "first_status": "auto_route",
+        "second_status": "auto_route",
+        "first_label": "rec.sport.baseball",
+        "second_label": "rec.sport.baseball"
+      },
+      {
+        "id": "rep-5-1",
+        "first_status": "human_review",
+        "second_status": "human_review",
+        "first_label": "rec.autos",
+        "second_label": "rec.autos"
+      },
+      {
+        "id": "rep-5-2",
+        "first_status": "auto_route",
+        "second_status": "auto_route",
+        "first_label": "sci.med",
+        "second_label": "sci.med"
+      },
+      {
+        "id": "rep-6-1",
+        "first_status": "auto_route",
+        "second_status": "auto_route",
+        "first_label": "talk.politics.guns",
+        "second_label": "talk.politics.guns"
+      },
+      {
+        "id": "rep-6-2",
+        "first_status": "auto_route",
+        "second_status": "auto_route",
+        "first_label": "talk.politics.guns",
+        "second_label": "talk.politics.guns"
+      }
+    ]
+  }
+}

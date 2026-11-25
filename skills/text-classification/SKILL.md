@@ -38,32 +38,21 @@ Use exactly one of these labels:
   political conflict concerning firearms. Include constitutional or public
   safety arguments; exclude crime stories where policy is not the subject.
 
-If the text is empty, shorter than 40 characters, over 50,000 characters, or
-otherwise uncodeable, use the terminal outcome `rejected` rather than forcing a
-topic.
-
 ## Tool Use
 
-1. Load this skill before using the task-specific tools.
-2. Validate the article before classification. Do not echo secrets or infer a
-   label from an invalid input.
-3. Call `classify_topic` to obtain the SVM candidate, margin, confidence, and
-   positively contributing features.
-4. Call `retrieve_evidence` and compare the candidate with the retrieved label
-   distribution. A retrieval result is evidence, not truth.
-5. Use `auto_route` only when the model and evidence agree and the combined
-   support is sufficient. Send borderline, conflicting, or short-but-valid
-   cases to `request_human_review` with a concrete reason.
-6. Never invent a tool result. If a tool fails, retry once when appropriate;
-   otherwise degrade to human review or rejection with the failure recorded.
-7. Stop only after `submit_result` or `request_human_review`.
+The API rejects texts outside the input length bounds before the Agent starts.
+For accepted input, apply the codebook as follows:
 
-## Quality Checks
+1. Call `classify_topic` for the candidate label, margin and contributing terms.
+2. Call `retrieve_evidence` to compare that candidate with the distribution
+   of nearby training labels. Increase top-k within the supported range
+   when the initial retrieved evidence is sparse.
+3. Use `submit_route` only if both observations and the article's actual topic
+   agree. A news release mentioning an agency, a lobby or a public official
+   can look political even when its topic concerns medicine, religion or cars.
+4. Use `request_review` when a label boundary is unclear, an article is outside
+   the six topics, the evidence conflicts, or a needed tool remains unavailable.
+5. Stop issuing tools when a terminal tool succeeds.
 
-- The returned label must be in the codebook exactly.
-- Rationale must cite observed model/evidence signals, not hidden ground truth.
-- Low confidence or model/evidence disagreement must not be silently accepted.
-- Every run must remain within the configured step limit and produce a trace.
-- Evaluation must report completion, routing quality, human-review rate,
-  latency, tool failures, and representative errors.
-
+Support each reason with observed evidence. Treat softmax scores as ranking
+signals and retrieved labels as supporting observations.
